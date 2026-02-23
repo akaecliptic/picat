@@ -1,0 +1,31 @@
+name: release-picat
+on:
+  push:
+    branches:
+      - ci
+      - dev
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+(-[a-z]{1,5})?"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout changes
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: setup zig
+        uses: mlugg/setup-zig@v2
+
+      - name: run tests
+        run: zig build test
+
+      - name: build picat
+        run: zig build --release=small
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: picat
+          path: zig-out/bin/picat
