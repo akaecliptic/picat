@@ -82,7 +82,7 @@ pub fn main() u8 {
     // execute command
     switch (command) {
         .template => template(command) catch |err| return parse_error(err),
-        .version => print("picat v{s}", .{meta.version}),
+        .version => print("picat v{s}\n", .{meta.version}),
         .help => println(io.cli.usage_message),
     }
 
