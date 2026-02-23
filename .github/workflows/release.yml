@@ -28,6 +28,6 @@ jobs:
       - name: upload picat
         uses: actions/upload-artifact@v4
         with:
-          name: picat
-          path: zig-out/bin/picat
+          name: zig-out/bin/picat
+          path:
           compression-level: 0
