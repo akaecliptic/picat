@@ -3,7 +3,7 @@ name: release-picat
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+(-[a-z]{1,5})?"
+      - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   release:
