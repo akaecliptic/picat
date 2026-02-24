@@ -25,4 +25,4 @@ services:
 
 _command:_
 
-`picat --in=compose.template --out=compose.yml --values='{"image_name":"amazing-app:latest", "port":8080}'`
+`picat --in=compose.template --out=compose.yml --value='{"image_name":"amazing-app:latest", "port":8080}'`
