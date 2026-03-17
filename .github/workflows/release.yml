@@ -21,7 +21,7 @@ jobs:
         run: zig build test
 
       - name: build picat
-        run: zig build --release=small
+        run: zig build --release=fast
 
       - name: release picat
         uses: softprops/action-gh-release@v2
