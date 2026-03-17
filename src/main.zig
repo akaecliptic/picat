@@ -209,7 +209,7 @@ fn from_value(allocator: Allocator, in: *Reader, command: Command, value: []cons
     if (line == null) return;
 
     // create and open out file
-    var out = try io.file.write_file(allocator, command.template.out);
+    var out = try io.file.write_file(allocator, command.template.out, command.template.truncate);
     defer out.file.close();
 
     // write lines with data to file

@@ -28,13 +28,13 @@ const write_buffer_size: usize = 2048;
 
 // opens a file in read only, and returns its `File.Reader`
 pub fn read_file(allocator: Allocator, path: []const u8) Error!File.Reader {
-    const file = try open_file(path, false);
+    const file = try open_file(path, false, false);
     return create_reader(allocator, file);
 }
 
 // opens a file in read write, and returns its `File.Writer`
-pub fn write_file(allocator: Allocator, path: []const u8) Error!File.Writer {
-    const file = try open_file(path, true);
+pub fn write_file(allocator: Allocator, path: []const u8, truncate: ?bool) Error!File.Writer {
+    const file = try open_file(path, true, truncate);
     return create_writer(allocator, file);
 }
 
@@ -86,16 +86,19 @@ pub fn write_line(writer: *File.Writer, bytes: []const u8) Error!void {
 // underlying
 
 // opens file at specified path, creating file if needed
-pub fn open_file(path: []const u8, create: bool) Error!File {
+pub fn open_file(path: []const u8, create: bool, truncate: ?bool) Error!File {
     var cwd = fs.cwd();
     var file: File = undefined;
 
     if (create) {
-        // todo: allow user to update these settings e.g. introduce --truncate=<bool> option
+        // note: this truncate doesn't really need to be an optional, but i think i'll allow
+        // users to specify more options in the future, and it aligns with usage logic
+        const overwrite = if (truncate == null) false else truncate.?;
+
         file = try cwd.createFile(path, .{
             .read = true,
-            .truncate = false, // true wipes file if exists
-            .exclusive = true, // true fails to open file if it exists
+            .truncate = overwrite, // true overwrites file if exists
+            .exclusive = !overwrite, // true fails to open file if it exists
             .lock = .exclusive,
         });
     } else {

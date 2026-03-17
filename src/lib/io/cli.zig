@@ -27,6 +27,7 @@ const FriendlyCommandErrors = error{
 const Operations = enum {
     @"--in",
     @"--out",
+    @"--truncate",
     @"--value",
     @"--file",
     @"--secret",
@@ -45,6 +46,7 @@ pub const Command = union(enum) {
     template: struct {
         in: []const u8 = "",
         out: []const u8 = "",
+        truncate: bool = false,
         value: ?union(enum) {
             value: []const u8,
             file: []const u8,
@@ -70,6 +72,8 @@ pub const usage_message =
     \\usage: picat --in=<file> --out=<file> [options]
     \\       picat [command]
     \\  options: 
+    \\      --truncate=<bool>   if true, templating overwrites out file if already exists, otherwise,
+    \\                          an error is produced. bool is [true|false], and default value is false
     \\      --value=<value>     template using a json object mapping template keys to values
     \\      --file=<file>       template using a json file with object mapping template keys to values 
     \\      --secret=<id>       template using a secret from aws secret manager fetched by sectret id, 
@@ -123,6 +127,13 @@ pub fn parse_args(args: []const []const u8) Error!Command {
                 }
 
                 command.template.out = rest;
+            },
+            .@"--truncate" => {
+                if (internal.strings.is_blank(rest)) {
+                    return error.ValueOptionNotSet;
+                }
+
+                command.template.truncate = internal.strings.equals("true", rest);
             },
             .@"--value" => {
                 if (internal.strings.is_blank(rest)) {

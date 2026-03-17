@@ -223,16 +223,16 @@ test "file::read_all: validation" {
     try testing.expectEqual(expected, actual);
 }
 
-test "file::write_file: validation" {
+test "file::write_file: validation 1" {
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     const allocator = arena.allocator();
     defer arena.deinit();
 
-    var random = std.Random.DefaultPrng.init(123456789);
+    var random = std.Random.DefaultPrng.init(@intCast(std.time.microTimestamp()));
     const random_string = try internal.strings.stringify(allocator, random.next(), .{});
     const file_name = try internal.strings.concat(allocator, &.{ "/tmp/test_", random_string });
 
-    var reader = try file.write_file(allocator, file_name);
+    var reader = try file.write_file(allocator, file_name, false);
     defer std.fs.cwd().deleteFile(file_name) catch {};
     defer reader.file.close();
 
@@ -240,6 +240,51 @@ test "file::write_file: validation" {
     const actual = stats.kind;
 
     try testing.expect(actual == .file);
+}
+
+test "file::write_file: validation 2" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    const allocator = arena.allocator();
+    defer arena.deinit();
+
+    var random = std.Random.DefaultPrng.init(@intCast(std.time.microTimestamp()));
+    const random_string = try internal.strings.stringify(allocator, random.next(), .{});
+    const file_name = try internal.strings.concat(allocator, &.{ "/tmp/test_", random_string });
+
+    // open file, no truncate, to create fresh file
+    var reader = try file.write_file(allocator, file_name, false);
+
+    // defer final cleanup
+    defer std.fs.cwd().deleteFile(file_name) catch {};
+    defer reader.file.close();
+
+    var stats = try reader.file.stat();
+    const actual_first = stats.kind;
+
+    try testing.expect(actual_first == .file);
+
+    // close file, but do not delete
+    reader.file.close();
+
+    // reopen file, with truncate
+    reader = try file.write_file(allocator, file_name, true);
+
+    stats = try reader.file.stat();
+    const actual_second = stats.kind;
+
+    try testing.expect(actual_second == .file);
+}
+
+test "file::write_file: error" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    const allocator = arena.allocator();
+    defer arena.deinit();
+
+    const expected = error.PathAlreadyExists;
+
+    const actual = file.write_file(allocator, "test/data/env.template", false);
+
+    try testing.expectError(expected, actual);
 }
 
 // value
