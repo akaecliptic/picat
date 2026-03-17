@@ -231,8 +231,9 @@ pub fn next_line(self: *TemplateParser) Error!?[]const u8 {
             // mark end of substring
             const end = line_parser.c;
 
-            // step 2.3 - create key from substring, and get value from map
-            const key = line[start..end];
+            // step 2.3 - create key from trimmed substring, and get value from map
+            const raw_key = line[start..end];
+            const key = std.mem.trim(u8, raw_key, " ");
             const optional = self.value_map.get(key);
 
             // step 2.4 - if present append value to byte array, otherwise produce error
